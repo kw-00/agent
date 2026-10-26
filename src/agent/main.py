@@ -114,7 +114,7 @@ judge = create_agent(
         response_format=JudgeResponse);
 
 def invoke_initial(state):
-    logger.debug("State: %s", state)
+    logger.info("Running initial")
     content = "# Task:\n"
     content += state["original_prompt"]
     content += "\n\n"
@@ -126,7 +126,7 @@ def invoke_initial(state):
             "feedback": None}
 
 def invoke_worker(state):
-    logger.debug("State: %s", state)
+    logger.info("Running worker")
     content = "# Task:\n"
     content += state["original_prompt"]
     content += "\n\n"
@@ -151,7 +151,7 @@ def check_passes(state):
 
 
 def invoke_judge(state):
-    logger.debug("State: %s", state)
+    logger.info("Running judge")
     content = "# Task:\n"
     content += state["original_prompt"]
     content += "\n\n"
