@@ -187,8 +187,6 @@ workflow.add_edge("worker","judge")
 chain = workflow.compile()
 
 prompt = " ".join(sys.argv[1:])
-print(prompt, "++++++++++++++++++")
-print("PEEEEEED", os.getpid())
 if prompt is None:
     raise ValueError("No prompt")
 
@@ -198,7 +196,6 @@ def main():
         "questions": None,
         "feedback": None,
         "passes": False})
-    print(state)
 
 
 
