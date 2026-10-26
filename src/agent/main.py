@@ -21,7 +21,13 @@ MODEL_NAME = os.environ.get("MODEL")
 if MODEL_NAME is None:
     raise ValueError("MODEL env var must be present")
 
-BASE_URL="http://localhost:8888/v1"
+BASE_URL = os.environ.get("BASE_URL")
+if BASE_URL is None:
+    raise ValueError("BASE_URL env var must be present")
+
+TEMPERATURE = os.environ.get("TEMPERATURE")
+if TEMPERATURE is None:
+    raise ValueError("TEMPERATURE env var must be present")
 
 INITIAL_PROMPT = \
 """
@@ -74,11 +80,11 @@ def system_command(command: str) -> str:
 tools=[system_command]
 
 
-
 model = init_chat_model(
-        model=MODEL_NAME,
         model_provider="openai",
+        model=MODEL_NAME,
         base_url=BASE_URL,
+        temperature=TEMPERATURE,
         api_key="unnecessary");
 
 
