@@ -28,6 +28,10 @@ if BASE_URL is None:
 TEMPERATURE = os.environ.get("TEMPERATURE")
 if TEMPERATURE is None:
     raise ValueError("TEMPERATURE env var must be present")
+try:
+    TEMPERATURE = float(TEMPERATURE)
+except ValueError:
+    raise ValueError("TEMPERATURE env var must be a floating-point number")
 
 INITIAL_PROMPT = \
 """
