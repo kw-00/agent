@@ -1,5 +1,7 @@
 import sys
 import os
+import subprocess
+import logging
 
 from typing import TypedDict
 from pydantic import BaseModel, Field
@@ -9,6 +11,11 @@ from langchain.agents import create_agent
 from langchain.tools import tool
 
 from langgraph.graph import END, START, StateGraph
+
+logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s %(levelname)s %(name)s %(funcName)s: %(message)s")
+logger = logging.getLogger(__name__)
 
 MODEL_NAME = os.environ.get("MODEL")
 if MODEL_NAME is None:
@@ -46,13 +53,22 @@ Verify the work state thoroughly and decide whether Task has been completed. If 
 If the work doesn't pass, return appropriate feedback and an appropriate value for passes. Make sure feedback answers Questions.
 
 IMPORTANT; you do NOT have to find every mistake or missing work. Once you find a single thing to fix/improve/do, you can immediately proceed to return feedback.
+
+If Task is not a task at all (e.g. Task: Hi, what's up), simply consider it as a pass.
 """
 
 
 @tool
 def system_command(command: str) -> str:
     """Run any system command"""
-    return os.system(command)
+    result = subprocess.run(
+            command,
+            shell=True,
+            capture_output=False,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True)
+    return result.stdout
 
 tools=[system_command]
 
@@ -97,16 +113,18 @@ judge = create_agent(
         response_format=JudgeResponse);
 
 def invoke_initial(state):
+    logger.debug("State: %s", state)
     content = "# Task:\n"
     content += state["original_prompt"]
     content += "\n\n"
     output = initial.invoke(
-            {"messages": [{"role": "user", "content": content}]})
+            {"messages": [{"role": "user", "content": content}]})["structured_response"]
     return {
             "questions": output.questions,
             "feedback": None}
 
 def invoke_worker(state):
+    logger.debug("State: %s", state)
     content = "# Task:\n"
     content += state["original_prompt"]
     content += "\n\n"
@@ -120,7 +138,7 @@ def invoke_worker(state):
     content += state["feedback"]
 
     output = worker.invoke(
-            {"messages": [{"role": "user", "content": content}]})
+            {"messages": [{"role": "user", "content": content}]})["structured_response"]
     return {
             "questions": output.questions,
             "feedback": None}
@@ -130,6 +148,7 @@ def check_passes(state):
 
 
 def invoke_judge(state):
+    logger.debug("State: %s", state)
     content = "# Task:\n"
     content += state["original_prompt"]
     content += "\n\n"
@@ -139,7 +158,7 @@ def invoke_judge(state):
         content += "\n\n"
 
     output = judge.invoke(
-            {"messages": [{"role": "user", "content": content}]})
+            {"messages": [{"role": "user", "content": content}]})["structured_response"]
     if output.passes:
         return {
                 "feedback": None,
@@ -165,6 +184,7 @@ chain = workflow.compile()
 
 prompt = " ".join(sys.argv)
 print(prompt, "++++++++++++++++++")
+print("PEEEEEED", os.getpid())
 if prompt is None:
     raise ValueError("No prompt")
 
