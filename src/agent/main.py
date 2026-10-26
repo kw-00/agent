@@ -13,7 +13,7 @@ from langchain.tools import tool
 from langgraph.graph import END, START, StateGraph
 
 logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.INFO,
         format="%(asctime)s %(levelname)s %(name)s %(funcName)s: %(message)s")
 logger = logging.getLogger(__name__)
 
@@ -61,6 +61,7 @@ If Task is not a task at all (e.g. Task: Hi, what's up), simply consider it as a
 @tool
 def system_command(command: str) -> str:
     """Run any system command"""
+    logger.info("Calling command: %s", command)
     result = subprocess.run(
             command,
             shell=True,
@@ -119,6 +120,7 @@ def invoke_initial(state):
     content += "\n\n"
     output = initial.invoke(
             {"messages": [{"role": "user", "content": content}]})["structured_response"]
+    log.info("Output: %s", output)
     return {
             "questions": output.questions,
             "feedback": None}
@@ -139,6 +141,7 @@ def invoke_worker(state):
 
     output = worker.invoke(
             {"messages": [{"role": "user", "content": content}]})["structured_response"]
+    log.info("Output: %s", output)
     return {
             "questions": output.questions,
             "feedback": None}
@@ -159,6 +162,7 @@ def invoke_judge(state):
 
     output = judge.invoke(
             {"messages": [{"role": "user", "content": content}]})["structured_response"]
+    logger.info("Output: %s", output)
     if output.passes:
         return {
                 "feedback": None,
@@ -182,7 +186,7 @@ workflow.add_edge("worker","judge")
 
 chain = workflow.compile()
 
-prompt = " ".join(sys.argv)
+prompt = " ".join(sys.argv[1:])
 print(prompt, "++++++++++++++++++")
 print("PEEEEEED", os.getpid())
 if prompt is None:
