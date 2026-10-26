@@ -120,7 +120,7 @@ def invoke_initial(state):
     content += "\n\n"
     output = initial.invoke(
             {"messages": [{"role": "user", "content": content}]})["structured_response"]
-    log.info("Output: %s", output)
+    logger.info("Output: %s", output)
     return {
             "questions": output.questions,
             "feedback": None}
@@ -141,7 +141,7 @@ def invoke_worker(state):
 
     output = worker.invoke(
             {"messages": [{"role": "user", "content": content}]})["structured_response"]
-    log.info("Output: %s", output)
+    logger.info("Output: %s", output)
     return {
             "questions": output.questions,
             "feedback": None}
